@@ -34,6 +34,33 @@ for line in data.split('\n'):
     # add the line to the list
     lines.append(d)
 
+# Initialize a list to store the distances between the top positions of consecutive lines
+distances = []
+
+# Iterate through the lines
+for i, line in enumerate(lines):
+    # Skip the first line
+    if i == 0:
+        continue
+
+    # Get the top position of the current line and the previous line
+    current_top = line[headers.index('top')]
+    prev_top = lines[i - 1][headers.index('top')]
+
+    # Calculate the distance between the top positions and add it to the list
+    distance = abs(int(current_top) - int(prev_top))
+    distances.append(distance)
+
+# # Sort the list of distances
+# distances.sort()
+print("distances: ", distances)
+
+# Take the median value of the distances
+average_distance = sum(distances) / len(distances)
+
+# print the median distance
+print("avg distance: ", average_distance)
+
 # Initialize a list to store the paragraphs
 paragraphs = []
 
@@ -53,7 +80,7 @@ for i, line in enumerate(lines):
     prev_top = int(prev_top)
 
     # If the top position of the current line is within a certain distance of the previous line, add it to the current paragraph
-    if abs(current_top - prev_top) < 40:
+    if abs(current_top - prev_top) < (average_distance * 5):
         paragraphs[-1].append(line)
     # Otherwise, start a new paragraph
     else:
