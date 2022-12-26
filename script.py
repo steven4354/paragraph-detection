@@ -17,6 +17,9 @@ data = pytesseract.image_to_data(thresh)
 # level	page_num	block_num	par_num	line_num	word_num	left	top	width	height	conf	text
 headers = ['level', 'page_num', 'block_num', 'par_num', 'line_num', 'word_num', 'left', 'top', 'width', 'height', 'conf', 'text']
 
+# Initialize a list to store the lines
+lines = []
+
 for line in data.split('\n'):
     # skip the first line
     if line == data.split('\n')[0]:
@@ -28,14 +31,61 @@ for line in data.split('\n'):
     if not d:
         continue
 
-    # get the bounding box coordinates and dimensions
-    x, y, w, h = d[headers.index('left')], d[headers.index('top')], d[headers.index('width')], d[headers.index('height')]
+    # add the line to the list
+    lines.append(d)
 
-    # make them all integers
-    x, y, w, h = int(x), int(y), int(w), int(h)
+# Initialize a list to store the paragraphs
+paragraphs = []
 
-    # Draw the bounding box on the image
-    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+# Iterate through the lines
+for i, line in enumerate(lines):
+    # If this is the first line, start a new paragraph
+    if i == 0:
+        paragraphs.append([line])
+        continue
+
+    # Get the top position of the current line and the previous line
+    current_top = line[headers.index('top')]
+    prev_top = lines[i - 1][headers.index('top')]
+
+    # make current_top and prev_top integers
+    current_top = int(current_top)
+    prev_top = int(prev_top)
+
+    # If the top position of the current line is within a certain distance of the previous line, add it to the current paragraph
+    if abs(current_top - prev_top) < 40:
+        paragraphs[-1].append(line)
+    # Otherwise, start a new paragraph
+    else:
+        paragraphs.append([line])
+
+# print just the text of the paragraphs
+# try catch the error and print the error
+for paragraph in paragraphs:
+    paragraph_to_print = ''
+    try:
+        # print(' '.join([line[headers.index('text')] for line in paragraph]))
+        # print the text in each line
+        for line in paragraph:
+            # check if line[headers.index('text')] is not out of range
+            try:
+                if line[headers.index('text')] != '':
+                    # print(line[headers.index('text')])
+                    # add the text to paragraph_to_print
+                    paragraph_to_print += line[headers.index('text')] + ' '
+            except Exception as e:
+                # print(e)
+                pass
+    except Exception as e:
+        print(e)
+
+    # print the paragraph_to_print
+    print(paragraph_to_print)
+
+    # repeated print some line breaks
+    print(' ')
+    print(' ')
+    print(' ')
 
 # Save the image with bounding boxes
 cv2.imwrite('image_with_boxes.jpg', image)
@@ -43,5 +93,5 @@ cv2.imwrite('image_with_boxes.jpg', image)
 while True:
     # Run the code to output bounding boxes around paragraphs or sections in the image
     # ...
-    print("hello world")
+    print("just keep printing....")
     time.sleep(3)
